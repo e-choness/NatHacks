@@ -1,8 +1,15 @@
 fastapi==0.110.0
+python-multipart>=0.0.9
 uvicorn[standard]==0.29.0
 opencv-contrib-python==4.10.0.84
 mediapipe==0.10.14
+google-cloud-aiplatform==1.91.0
+google-cloud-speech==2.36.0
+google-cloud-texttospeech==2.36.0
 google-cloud-vision==3.7.2
+google-api-core==2.30.3
+google-auth==2.52.0
+pydub==0.25.1
 websockets==12.0
 pydantic==1.10.15
 pyttsx3==2.90

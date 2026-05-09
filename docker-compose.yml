@@ -1,0 +1,106 @@
+services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=appdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend FastAPI Service ─────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    env_file:
+      - backend/.env.example   # Defaults
+      - backend/.env           # Overrides (if exists)
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/appdb
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── Frontend Next.js Service ────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    env_file:
+      - frontend/.env.example  # Defaults
+      - frontend/.env          # Overrides (if exists)
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+
+  # ── Tools: AR Marker Viewer ─────────────────────────────────────────────────
+  tools:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tools
+    env_file:
+      - tools/.env.example     # Defaults
+      - tools/.env             # Overrides (if exists)
+    ports:
+      - "8080:80"
+
+  # ── Atomic Ephemeral Backend Tests ──────────────────────────────────────────
+  backend-tests:
+    profiles:
+      - test
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-tests
+    command: sh -c "PYTHONPATH=/app pytest tests/ -v"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Atomic Ephemeral Frontend Tests ─────────────────────────────────────────
+  frontend-tests:
+    profiles:
+      - test
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-tests
+    command: npm run test
+
+volumes:
+  pgdata:
+  redisdata:

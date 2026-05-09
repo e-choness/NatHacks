@@ -1,251 +1,466 @@
-# NatHacks Assistive Mirror# NatHacks Assistive Mirror
+# NatHacks Assistive Mirror
 
-Raspberry Pi smart mirror that guides morning routines with on-device computer vision and optional Google Cloud Vision assist. Built for <150ms capture→overlay latency while keeping the UX senior-friendly.Raspberry Pi smart mirror that guides morning routines with on-device computer vision and optional Google Cloud Vision assist. Built for <150ms capture→overlay latency while keeping the UX senior-friendly.
+Raspberry Pi smart mirror that guides morning routines with on-device computer vision and optional Google Cloud Vision assist. Built for <150ms capture→overlay latency while keeping the UX senior-friendly.
 
-## Quick Start## Quick Start
+## Quick Start (Docker) — Recommended
 
-### 1. Backend Setup### 1. Backend Setup
+The recommended way to run the entire application stack is via Docker Compose:
 
-`bash`bash
+### 1. (Optional) Configure API Keys
 
-python -m venv .venvpython -m venv .venv
+Docker Compose automatically uses default environment values from `.env.example` files. To customize:
 
-source .venv/bin/activatesource .venv/bin/activate
+```bash
+# Create custom .env files (optional, only if you want to change defaults)
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp tools/.env.example tools/.env
 
-pip install -r backend/requirements.txtpip install -r backend/requirements.txt
+# Edit to add your API keys (optional but recommended)
+# - backend/.env: Add GEMINI_API_KEY for AI coaching
+# - backend/.env: Add GOOGLE_APPLICATION_CREDENTIALS for enhanced vision
+# - frontend/.env: Adjust API URLs if needed (usually not needed)
+```
 
-uvicorn backend.app:app --host 0.0.0.0 --port 8000uvicorn backend.app:app --host 0.0.0.0 --port 8000
+**For basic usage, you can skip this step.** Docker Compose will use the `.env.example` files automatically.
 
-````
+**To customize**:
+- `GEMINI_API_KEY` — Intelligent coaching with Gemini AI (optional)
+- `GOOGLE_APPLICATION_CREDENTIALS` — GCP service account for enhanced vision (optional)
+- `DETECT_SCALE`, `REDUCE_MOTION`, `ARUCO_STRIDE` — Fine-tune vision pipeline (optional)
 
+See [Configuration](#configuration) section below for full details.
 
+### 2. Start Services
 
-### 2. Frontend Build### 2. Frontend Build
+```bash
+docker compose up
+```
 
-```bash```bash
+This starts all services:
+- **Backend API** (FastAPI) → `http://localhost:8000`
+- **Frontend** (Next.js) → `http://localhost:3000`
+- **PostgreSQL Database** → internal port 5432
+- **Redis Cache** → internal port 6379
+- **Tools** (AR Marker Viewer) → `http://localhost:8080`
 
-cd frontendcd frontend
+Check service health:
+```bash
+docker compose ps
+```
 
-npm installnpm install
+### 3. Verify It's Working
 
-npm run build:mmnpm run build:mm
+```bash
+# Check backend health
+curl http://localhost:8000/health
 
-````
+# Open frontend in browser
+open http://localhost:3000
+```
 
-### 3. MagicMirror Setup### 3. MagicMirror Setup
+---
 
-`bash`bash
+## Running Specific Services
 
-cd mirrorcd mirror
+```bash
+# Only backend
+docker compose up api
 
-npm installnpm install
+# Only frontend
+docker compose up web
 
-npm startnpm start
+# Backend + database (no frontend)
+docker compose up api db redis
+```
 
-````
+### Running Tests in Docker
 
+```bash
+# Backend tests
+docker compose run --rm backend-tests
+
+# Frontend tests
+docker compose run --rm frontend-tests
 
+# Both tests in parallel
+docker compose --profile test up backend-tests frontend-tests
+```
 
-## Architecture## Architecture
+### Stopping Services
 
+```bash
+docker compose down          # Stop services
+docker compose down -v       # Stop services and remove volumes (reset DB)
+```
 
+---
 
-- **Backend (FastAPI)**: Computer vision pipeline, WebSocket broadcasting, REST API- **Backend (FastAPI)**: Computer vision pipeline, WebSocket broadcasting, REST API
+## Local Development (Without Docker) — Optional
 
-- **Frontend (React)**: TypeScript SPA with camera access and AR overlays- **Frontend (React)**: TypeScript SPA with camera access and AR overlays
+If you prefer to run services locally without Docker:
+
+### Backend Setup
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate    # macOS/Linux
+# .venv\Scripts\activate      # Windows
+
+pip install -r requirements.txt
+
+# Copy and configure environment
+cp .env.example .env
+# Edit .env to add GEMINI_API_KEY, etc.
+
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Backend runs at `http://localhost:8000`
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
+
+# Copy and configure environment
+cp .env.example .env.local
+# Edit .env.local if needed
+
+npm run dev
+```
+
+Frontend runs at `http://localhost:3000`
+
+---
+
+## Project Structure
+
+```
+.
+├── backend/                  # FastAPI Server
+│   ├── app.py               # Main application
+│   ├── vision_pipeline.py   # MediaPipe + OpenCV
+│   ├── cloud_vision.py      # Google Cloud Vision
+│   ├── task_system.py       # Routine management
+│   ├── requirements.txt     # Python dependencies
+│   ├── tests/               # Pytest suite
+│   ├── .env.example         # Environment template
+│   └── Dockerfile           # Standalone image
+│
+├── frontend/                # Next.js 15 (React + TypeScript)
+│   ├── app/                 # App Router pages & layouts
+│   ├── components/          # React components
+│   ├── lib/                 # External SDK (don't modify)
+│   ├── public/              # Static assets
+│   ├── styles/              # Global CSS
+│   ├── package.json         # Node dependencies
+│   ├── .env.example         # Environment template
+│   └── Dockerfile           # Standalone image
+│
+├── tools/                   # Utilities & AR Marker Viewer
+│   ├── aruco-viewer/        # Nginx-served marker viewer
+│   ├── scripts/             # Python calibration & generation
+│   ├── markers/             # Generated ArUco markers
+│   ├── .env.example         # Environment template
+│   └── Dockerfile           # Standalone image
+│
+├── docs/                    # Documentation
+│   ├── architecture/        # System design
+│   ├── development/         # Dev guides (Docker, testing, etc.)
+│   ├── services/            # API documentation
+│   └── DEPLOYMENT.md        # Deployment guide
+│
+├── infrastructure/          # Infrastructure & deployment
+│   ├── config/              # Configuration files
+│   └── mirror/              # MagicMirror module setup
+│
+├── Dockerfile               # Multi-stage root Dockerfile
+├── docker-compose.yml       # Service orchestration
+└── README.md                # This file
+```
 
-- **MagicMirror Module**: Iframe wrapper that embeds the React app- **MagicMirror Module**: Iframe wrapper that embeds the React app
+---
 
+## Architecture
 
+- **Backend (FastAPI)**: Real-time computer vision, WebSocket broadcasting, REST API
+- **Frontend (React/Next.js)**: TypeScript SPA with camera access, AR overlays, WebSocket client
+- **Database (PostgreSQL)**: User data, session history, configuration
+- **Cache (Redis)**: Real-time state, message queue
+- **Tools**: AR marker viewer for testing ArUco detection
 
-## Key Components## Key Components
+---
 
+## Configuration
 
+### Backend Environment Variables
 
-### Backend (`backend/`)### Backend (`backend/`)
+Create or edit `backend/.env`:
 
-- `app.py` - FastAPI server with WebSocket and REST endpoints- `app.py` - FastAPI server with WebSocket and REST endpoints
+```env
+# Database (optional, pre-configured in Docker)
+DATABASE_URL=postgresql://user:password@localhost:5432/appdb
+REDIS_URL=redis://localhost:6379/0
 
-- `vision_pipeline.py` - MediaPipe face/hands processing with cloud fallback- `vision_pipeline.py` - MediaPipe face/hands processing with cloud fallback
+# Google Cloud Vision (optional but recommended)
+# Download key from: https://cloud.google.com/docs/authentication/getting-started
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 
-- `cloud_vision.py` - Google Cloud Vision client with rate limiting- `cloud_vision.py` - Google Cloud Vision client with rate limiting
+# Gemini AI Assistant (optional but recommended)
+# Get API key from: https://ai.google.dev/tutorials/setup
+GEMINI_API_KEY=your_gemini_api_key_here
 
-- `task_system.py` - Guided routine management- `task_system.py` - Guided routine management
+# Vision pipeline tuning (optional)
+DETECT_SCALE=0.75          # Frame downscale (0.0-1.0, faster = lower quality)
+REDUCE_MOTION=false        # Smooth overlays with frame averaging
+ARUCO_STRIDE=2             # Process every N frames
 
+# Server settings
+HOST=0.0.0.0
+PORT=8000
+LOG_LEVEL=INFO
+```
 
+For **Docker Compose**, these are pre-configured and database variables are handled automatically. Only add `GEMINI_API_KEY`, `GOOGLE_APPLICATION_CREDENTIALS`, and vision tuning if needed.
 
-### Frontend (`frontend/`)### Frontend (`frontend/`)
+### Frontend Environment Variables
 
-- React + TypeScript + Vite + Tailwind CSS- React + TypeScript + Vite + Tailwind CSS
+Create or edit `frontend/.env.local` (or `frontend/.env` for Docker):
 
-- Camera access with getUserMedia- Camera access with getUserMedia
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_WS_URL=ws://localhost:8000
+NEXT_TELEMETRY_DISABLED=1
+```
 
-- Canvas 2D overlays (rings, text, progress bars)- Canvas 2D overlays (rings, text, progress bars)
+---
 
-- WebSocket connection to backend- WebSocket connection to backend
+## Key Components
 
+### Backend (`backend/`)
 
+| File | Purpose |
+|------|---------|
+| `app.py` | FastAPI server with WebSocket and REST endpoints |
+| `vision_pipeline.py` | MediaPipe face/hands + OpenCV processing |
+| `cloud_vision.py` | Google Cloud Vision client with rate limiting |
+| `task_system.py` | Guided routine & step validation |
 
-### MagicMirror (`modules/MMM-AssistiveCoach/`)### MagicMirror (`modules/MMM-AssistiveCoach/`)
+### Frontend (`frontend/`)
 
-- Iframe wrapper for React SPA- Iframe wrapper for React SPA
+- React 18 + TypeScript
+- Next.js 15 App Router
+- Tailwind CSS styling
+- Camera access via getUserMedia API
+- Canvas 2D AR overlays
+- WebSocket real-time updates
 
-- Configuration injection- Configuration injection
+### Tools (`tools/`)
 
-- Camera/microphone permissions- Camera/microphone permissions
+- **aruco-viewer**: Nginx-served HTML/JS for marker visualization
+- **scripts/**: Python utilities for calibration and marker generation
 
+---
 
+## API Endpoints
 
-## API Endpoints## API Endpoints
+### REST
 
+- `GET /health` — System status (camera, FPS, pose availability)
+- `POST /settings` — Configure vision pipeline parameters
+- `POST /overlay` — Send overlay commands to connected clients
+- `POST /session/start` — Begin a guided routine session
 
+### WebSocket
 
-### REST### REST
+- `ws://localhost:8000/ws` — Real-time overlay updates and client communication
 
-- `GET /health` - System status (camera, FPS, pose availability)- `GET /health` - System status (camera, FPS, pose availability)
+---
 
-- `POST /settings` - Configure vision pipeline- `POST /settings` - Configure vision pipeline
+## Development Workflow
 
-- `POST /overlay` - Send overlay commands- `POST /overlay` - Send overlay commands
+### Camera Calibration (Optional)
 
-- `POST /session/start` - Begin guided routine- `POST /session/start` - Begin guided routine
+If using physical ArUco markers:
 
+```bash
+# Docker
+docker compose run --rm api python scripts/calibrate_cam.py
 
+# Local
+python backend/scripts/calibrate_cam.py
+```
 
-### WebSocket### WebSocket
+Hold a checkerboard in front of your camera. Generated `camera_matrix.npy` saves to `config/`.
 
-- `ws://localhost:8000/ws` - Real-time overlay updates- `ws://localhost:8000/ws` - Real-time overlay updates
+### Generate ArUco Markers
 
+```bash
+# Docker
+docker compose run --rm api python scripts/gen_aruco.py
 
+# Local
+python backend/scripts/gen_aruco.py
+```
 
-## Configuration## Configuration
+### View AR Markers
 
+Open `http://localhost:8080` to view generated markers.
 
+---
 
-### Backend Settings### Backend Settings
+## Testing
 
-```json```json
+### Backend Tests (pytest)
 
-{{
+```bash
+# Docker
+docker compose run --rm backend-tests
 
-  "aruco": true,  "aruco": true,
+# Local
+cd backend && python -m pytest tests/ -v
+```
 
-  "pose": true,  "pose": true,
+### Frontend Tests
 
-  "overlay_from_aruco": true,  "overlay_from_aruco": true,
+```bash
+# Docker
+docker compose run --rm frontend-tests
 
-  "aruco_stride": 2,  "aruco_stride": 2,
+# Local
+cd frontend && npm run test
+```
 
-  "detect_scale": 0.75,  "detect_scale": 0.75,
+---
 
-  "reduce_motion": false  "reduce_motion": false
+## Troubleshooting
 
-}}
+### Service Won't Start
 
-````
+```bash
+# View logs
+docker compose logs api       # Backend
+docker compose logs web       # Frontend
+docker compose logs db        # Database
+```
 
-### MagicMirror Config### MagicMirror Config
+### Database Connection Failed
 
-`javascript`javascript
+```bash
+# Verify database is healthy
+docker compose ps
 
-{{
+# Reset database
+docker compose down -v
+docker compose up db
+```
 
-module: "MMM-AssistiveCoach", module: "MMM-AssistiveCoach",
+### WebSocket Connection Failed
 
-position: "fullscreen_above", position: "fullscreen_above",
+- Verify backend health: `curl http://localhost:8000/health`
+- Check `NEXT_PUBLIC_WS_URL` matches backend location
+- Check browser console for errors
 
-config: { config: {
+### Camera Not Accessible
 
-    wsUrl: "ws://127.0.0.1:8000/ws",    wsUrl: "ws://127.0.0.1:8000/ws",
+**Linux**: Check `/dev/video0` permissions
+```bash
+ls -la /dev/video0
+sudo usermod -a -G video $(whoami)
+```
 
-    apiBase: "http://127.0.0.1:8000",    apiBase: "http://127.0.0.1:8000",
+**macOS/Windows**: Grant terminal camera access in privacy settings
 
-    reduceMotion: false,    reduceMotion: false,
+### Port Already in Use
 
-    showHints: true    showHints: true
+Change ports in `docker-compose.yml` or use environment overrides:
+```bash
+docker compose -e "WEB_PORT=3001" up
+```
 
-} }
+---
 
-}}
+## Deployment
 
-````
+### Docker-Based Deployment
 
+For any environment with Docker (cloud VMs, Raspberry Pi, etc.):
 
+```bash
+git pull origin main
+docker compose build
+docker compose up -d
+```
 
-## Development## Development
+### Raspberry Pi Deployment
 
+See [Deployment Guide](docs/DEPLOYMENT.md) for detailed Pi setup with systemd auto-start.
 
+### Cloud Deployment
 
-### Testing### Testing
+- **Google Cloud Run**: Deploy backend container
+- **AWS ECS**: Full stack deployment
+- **Vercel**: Deploy frontend Next.js app
 
-```bash```bash
+See [Deployment Guide](docs/DEPLOYMENT.md) for instructions.
 
-# Backend tests# Backend tests
+---
 
-python -m pytest backend/testspython -m pytest backend/tests
+## Hardware Requirements
 
+For production deployment:
 
+- **Raspberry Pi 4+** (8GB RAM recommended, 4GB minimum)
+- **Camera module** (Pi Camera V2/V3 or USB webcam)
+- **Display** (HDMI monitor/TV)
+- **Network** (Ethernet or WiFi)
+- **Power** (5V 3A+ for Pi 4)
 
-# Vision pipeline test# Vision pipeline test
+Optional:
+- **Google Cloud Vision** credentials for enhanced accuracy
+- **Gemini API** key for voice assistant features
 
-python backend/vision_pipeline.pypython backend/vision_pipeline.py
+---
 
+## Documentation
 
+See `/docs` for detailed guides:
 
-# MagicMirror test# MagicMirror test
+- **[Getting Started](docs/development/getting-started.md)** — Setup in Docker or locally
+- **[Docker Guide](docs/development/docker-guide.md)** — Docker & Docker Compose deep dive
+- **[Testing](docs/development/testing.md)** — Running tests in Docker or locally
+- **[Architecture](docs/architecture/overview.md)** — System design and data flow
+- **[Deployment](docs/DEPLOYMENT.md)** — Production deployment on Pi, cloud, etc.
 
-cd mirror && npm startcd mirror && npm start
+---
 
-````
+## Environment Setup Quick Reference
 
-### Camera Calibration### Camera Calibration
+```bash
+# 1. Copy example files
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp tools/.env.example tools/.env
 
-`bash`bash
+# 2. Edit for your setup
+# - Add GEMINI_API_KEY to backend/.env (optional)
+# - Add GOOGLE_APPLICATION_CREDENTIALS to backend/.env (optional)
+# - Adjust API URLs in frontend/.env if needed
 
-python scripts/calibrate_cam.pypython scripts/calibrate_cam.py
+# 3. Start with Docker
+docker compose up
 
-````
+# 4. Access services
+# Frontend: http://localhost:3000
+# Backend: http://localhost:8000
+# Tools: http://localhost:8080
+```
 
+---
 
+## License
 
-### AR Marker Generation### AR Marker Generation
-
-```bash```bash
-
-python scripts/gen_aruco.pypython scripts/gen_aruco.py
-
-````
-
-## Troubleshooting## Troubleshooting
-
-### Common Issues### Common Issues
-
-1. **Camera not working**: Check `/dev/video0` permissions1. **Camera not working**: Check `/dev/video0` permissions
-
-2. **WebSocket connection failed**: Verify backend is running on port 80002. **WebSocket connection failed**: Verify backend is running on port 8000
-
-3. **MagicMirror not loading**: Run `npm run build:mm` in frontend directory3. **MagicMirror not loading**: Run `npm run build:mm` in frontend directory
-
-4. **Overlays not showing**: Check WebSocket messages in browser dev tools4. **Overlays not showing**: Check WebSocket messages in browser dev tools
-
-### Logs### Logs
-
-- Backend: `backend.log`- Backend: `backend.log`
-
-- Latency metrics: `logs/latency.csv`- Latency metrics: `logs/latency.csv`
-
-- MagicMirror: Check console in Electron dev tools- MagicMirror: Check console in Electron dev tools
-
-## Hardware Requirements## Hardware Requirements
-
-- Raspberry Pi 4+ (8GB RAM recommended)- Raspberry Pi 4+ (8GB RAM recommended)
-
-- Camera module (Pi Camera or USB webcam)- Camera module (Pi Camera or USB webcam)
-
-- Monitor/TV for display- Monitor/TV for display
-
-- Optional: Google Cloud Vision credentials for enhanced accuracy- Optional: Google Cloud Vision credentials for enhanced accuracy
-
-## License## License
-
-MITMIT
+MIT

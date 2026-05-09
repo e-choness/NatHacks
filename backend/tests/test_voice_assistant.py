@@ -21,10 +21,10 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from backend.speech_clients import TTS, STT
-from backend.gemini_assistant import GeminiAssistant
-from backend.vertex_speech import VertexSpeechToText
-from backend.voice_pipeline import VoiceAssistant
+from speech_clients import TTS, STT
+from gemini_assistant import GeminiAssistant
+from vertex_speech import VertexSpeechToText
+from voice_pipeline import VoiceAssistant
 
 # Configure logging for tests
 LOGGER = logging.getLogger("test_voice_assistant")

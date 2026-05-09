@@ -1,6 +1,6 @@
 import numpy as np
 
-from backend.vision_pipeline import VisionPipeline
+from vision_pipeline import VisionPipeline
 
 
 class _StubSettings:

@@ -1,6 +1,6 @@
 import time
 
-from backend.cloud_vision import CloudVisionClient
+from cloud_vision import CloudVisionClient
 
 
 def test_cache_key_stability():

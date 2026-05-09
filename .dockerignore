@@ -1,0 +1,48 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+*.whl
+.venv/
+venv/
+.pytest_cache/
+
+# ── Node / Next.js ────────────────────────────────────────────────────────────
+node_modules/
+.next/
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Environment (keep .env in service dirs tracked, ignore root leaks) ───────
+.env
+.env.local
+.env*.local
+.env.production
+
+# ── Git / IDE / OS ────────────────────────────────────────────────────────────
+.git/
+.gitignore
+*.md
+LICENSE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+.DS_Store
+
+# ── Docker (self) ─────────────────────────────────────────────────────────────
+Dockerfile
+.dockerignore
+docker-compose*.yml
+docker-compose*.yaml
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.log
+*.tmp
+coverage/
+build_output.txt

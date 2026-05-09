@@ -87,5 +87,14 @@ logs/*.log
 !package.json
 !package-lock.json
 
+# Agents
+CLAUDE.md
+AGENTS.md
+.github
+reports/
+.openclaude/
+bugs/
+.claude/
+
 # Environment variables
 .env*.local

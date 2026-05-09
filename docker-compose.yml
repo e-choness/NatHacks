@@ -31,7 +31,8 @@ services:
       dockerfile: Dockerfile
       target: backend
     env_file:
-      - backend/.env
+      - backend/.env.example   # Defaults
+      - backend/.env           # Overrides (if exists)
     ports:
       - "8000:8000"
     environment:
@@ -55,7 +56,8 @@ services:
       dockerfile: Dockerfile
       target: frontend
     env_file:
-      - frontend/.env
+      - frontend/.env.example  # Defaults
+      - frontend/.env          # Overrides (if exists)
     ports:
       - "3000:3000"
     environment:
@@ -69,7 +71,8 @@ services:
       dockerfile: Dockerfile
       target: tools
     env_file:
-      - tools/.env
+      - tools/.env.example     # Defaults
+      - tools/.env             # Overrides (if exists)
     ports:
       - "8080:80"
 

@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 # Install dependencies, including test frameworks
 RUN pip install --no-cache-dir -r requirements.txt pytest httpx
 
-COPY . .
+COPY backend/ .
 
 # Stage 2: Production
 FROM python:3.10-slim AS production
@@ -30,10 +30,10 @@ RUN apt-get update && apt-get install -y \
 # Run as non-root user for security (Least Privilege)
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY backend/ .
 
 RUN chown -R appuser:appuser /app
 USER appuser

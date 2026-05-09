@@ -8,16 +8,16 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY scripts/requirements.txt ./
+COPY tools/scripts/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY scripts/ ./scripts/
-COPY markers/ ./markers/
+COPY tools/scripts/ ./scripts/
+COPY tools/markers/ ./markers/
 
 # ── Stage 2: nginx viewer (serves the AR marker viewer HTML tool) ─────────────
 FROM nginx:alpine AS viewer
 
-COPY aruco-viewer/ /usr/share/nginx/html/
-COPY markers/ /usr/share/nginx/html/markers/
+COPY tools/aruco-viewer/ /usr/share/nginx/html/
+COPY tools/markers/ /usr/share/nginx/html/markers/
 
 EXPOSE 80

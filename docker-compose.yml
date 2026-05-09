@@ -27,8 +27,11 @@ services:
   # ── Backend FastAPI Service ─────────────────────────────────────────────────
   api:
     build:
-      context: ./backend
-      target: production
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    env_file:
+      - backend/.env
     ports:
       - "8000:8000"
     environment:
@@ -48,8 +51,11 @@ services:
   # ── Frontend Next.js Service ────────────────────────────────────────────────
   web:
     build:
-      context: ./frontend
-      target: production
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    env_file:
+      - frontend/.env
     ports:
       - "3000:3000"
     environment:
@@ -59,8 +65,11 @@ services:
   # ── Tools: AR Marker Viewer ─────────────────────────────────────────────────
   tools:
     build:
-      context: ./tools
-      target: viewer
+      context: .
+      dockerfile: Dockerfile
+      target: tools
+    env_file:
+      - tools/.env
     ports:
       - "8080:80"
 
@@ -69,8 +78,9 @@ services:
     profiles:
       - test
     build:
-      context: ./backend
-      target: test-runner
+      context: .
+      dockerfile: Dockerfile
+      target: backend-tests
     command: sh -c "PYTHONPATH=/app pytest tests/ -v"
     depends_on:
       db:
@@ -83,8 +93,9 @@ services:
     profiles:
       - test
     build:
-      context: ./frontend
-      target: test-runner
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-tests
     command: npm run test
 
 volumes:

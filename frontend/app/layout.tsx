@@ -1,6 +1,8 @@
+import "../lib/design/tokens.css";
+import "../styles/shadcn.css";
 import "./globals.css";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { AppNavTabs } from "@/components/navigation/AppNavTabs";
 import { PWARegister } from "@/components/pwa/PWARegister";
@@ -13,11 +15,14 @@ export const metadata: Metadata = {
   title: "Assistive Mirror",
   description: "Accessible smart mirror companion with AR guidance, CV, and coaching HUD.",
   manifest: "/manifest.webmanifest",
-  themeColor: "#0F172A",
   icons: {
     icon: "/icons/icon-192.svg",
     apple: "/icons/icon-192.svg"
   }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0F172A",
 };
 
 interface RootLayoutProps {

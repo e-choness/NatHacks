@@ -1,5 +1,6 @@
-@import "../lib/design/tokens.css";
-@import "../styles/shadcn.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   color-scheme: dark;

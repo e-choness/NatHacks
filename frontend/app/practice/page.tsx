@@ -42,7 +42,7 @@ export default function PracticePage() {
         time_left_s: currentStep.duration_s
       }
     });
-  }, [actions, currentStep, routine.title, session.stepIndex]);
+  }, [actions, currentStep, routine.title, routine.steps.length, session.stepIndex]);
 
   const handlePause = React.useCallback(() => {
     setStatus("paused");

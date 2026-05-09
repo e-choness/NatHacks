@@ -120,9 +120,10 @@ export function CameraSurface() {
       }
     }
     bootstrapCamera();
+    const videoEl = videoRef.current;
     return () => {
       mounted = false;
-      const stream = videoRef.current?.srcObject as MediaStream | null;
+      const stream = videoEl?.srcObject as MediaStream | null;
       stream?.getTracks().forEach((track) => track.stop());
       processLoopRef.current?.stop();
       opencvWorkerRef.current?.terminate();
@@ -235,7 +236,7 @@ export function CameraSurface() {
     return () => {
       loop.stop();
     };
-  }, [status]);
+  }, [status, sendFrame]);
 
   React.useEffect(() => {
     if (!overlayRef.current) return;

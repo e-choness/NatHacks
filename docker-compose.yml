@@ -1,33 +1,30 @@
-version: "3.8"
-
 services:
-  # Infrastructure: PostgreSQL Database
+  # ── Infrastructure ──────────────────────────────────────────────────────────
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: appdb
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=appdb
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
-  # Infrastructure: Redis Cache/Message Broker
   redis:
     image: redis:7-alpine
+    volumes:
+      - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 5
-    volumes:
-      - redisdata:/data
 
-  # Backend FastAPI Service
+  # ── Backend FastAPI Service ─────────────────────────────────────────────────
   api:
     build:
       context: ./backend
@@ -48,35 +45,45 @@ services:
       timeout: 5s
       retries: 3
 
-  # Frontend Next.js Service
+  # ── Frontend Next.js Service ────────────────────────────────────────────────
   web:
     build:
-      context: .
+      context: ./frontend
       target: production
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - NEXT_PUBLIC_WS_URL=ws://localhost:8000
-    # Following the separation plan, we do not strictly enforce `depends_on`
-    # for the API so the frontend UI can degrade gracefully if the API drops.
 
-  # Atomic Ephemeral Backend Tests
+  # ── Tools: AR Marker Viewer ─────────────────────────────────────────────────
+  tools:
+    build:
+      context: ./tools
+      target: viewer
+    ports:
+      - "8080:80"
+
+  # ── Atomic Ephemeral Backend Tests ──────────────────────────────────────────
   backend-tests:
+    profiles:
+      - test
     build:
       context: ./backend
       target: test-runner
-    command: pytest tests/ -v
+    command: sh -c "PYTHONPATH=/app pytest tests/ -v"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
 
-  # Atomic Ephemeral Frontend Tests
+  # ── Atomic Ephemeral Frontend Tests ─────────────────────────────────────────
   frontend-tests:
+    profiles:
+      - test
     build:
-      context: .
+      context: ./frontend
       target: test-runner
     command: npm run test
 

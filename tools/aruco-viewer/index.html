@@ -217,7 +217,6 @@
 		</div>
 		<script>
 			(function () {
-<<<<<<< HEAD
 				const reduceMotion = matchMedia(
 					"(prefers-reduced-motion: reduce)"
 				).matches;
@@ -228,30 +227,6 @@
 					: "normal";
 				const wsParam = new URLSearchParams(location.search).get("ws");
 				const WS_URL = wsParam || "ws://localhost:5055/ws";
-=======
-				const qs = new URLSearchParams(location.search);
-				let motionForced = qs.get("motion"); // 'off' or 'on'
-				const systemReduced = matchMedia(
-					"(prefers-reduced-motion: reduce)"
-				).matches;
-				let reduceMotion = systemReduced || motionForced === "off";
-				function applyMotionState() {
-					if (reduceMotion)
-						document.documentElement.classList.add("prefers-reduced-motion");
-					else
-						document.documentElement.classList.remove("prefers-reduced-motion");
-					document.getElementById("motion-state").textContent = reduceMotion
-						? "reduced"
-						: "normal";
-				}
-				applyMotionState();
-				const wsParam = new URLSearchParams(location.search).get("ws");
-				let WS_URL = wsParam || "ws://localhost:5055/ws";
-				// Auto fallback: if served via file:// and default port 5055 isn't up, prefer 127.0.0.1:8000
-				if (!wsParam && location.protocol === "file:") {
-					WS_URL = "ws://127.0.0.1:8000/ws";
-				}
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 				const conn = document.getElementById("conn");
 				const svg = document.getElementById("overlay");
 				const title = document.getElementById("hud-title");
@@ -275,15 +250,10 @@
 					c.setAttribute("cx", x);
 					c.setAttribute("cy", y);
 					c.setAttribute("r", r);
-<<<<<<< HEAD
 					c.setAttribute(
 						"class",
 						"ring" + (pulse && !reduceMotion ? " pulse" : "")
 					);
-=======
-					const doPulse = pulse && !reduceMotion;
-					c.setAttribute("class", "ring" + (doPulse ? " pulse" : ""));
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 					svg.appendChild(c);
 				}
 				function animateProgress(to01) {
@@ -360,51 +330,18 @@
 								light === "ok" ? "ok" : light === "dim" ? "warn" : "",
 								`light: ${light}`
 							);
-<<<<<<< HEAD
-=======
-							if (typeof data.reduce_motion === "boolean") {
-								// Respect explicit status setting unless user forced via ?motion
-								if (motionForced !== "off" && motionForced !== "on") {
-									reduceMotion = systemReduced || data.reduce_motion === true;
-									applyMotionState();
-								}
-							}
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 						}
 					};
 				}
 				// Keyboard demo overlays (local only)
 				function demoOverlay(n) {
-<<<<<<< HEAD
 					const ts = Date.now();
-=======
-					// Reflect realistic HUD phases
-					const phases = {
-						1: {
-							title: "Position Yourself",
-							subtitle: "Center face in view",
-							hint: "Ensure good lighting",
-						},
-						2: {
-							title: "Find Marker",
-							subtitle: "Place tool near mouth",
-							hint: "Align until ring turns solid",
-						},
-						3: {
-							title: "Great Job",
-							subtitle: "Maintain position",
-							hint: "Hold steady for countdown",
-						},
-					};
-					const phase = phases[n] || phases[1];
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 					flushOverlay({
 						type: "overlay.set",
 						shapes: [
 							{
 								kind: "ring",
 								anchor: { pixel: { x: 640, y: 360 } },
-<<<<<<< HEAD
 								radius_px: 100 + 8 * n,
 							},
 						],
@@ -415,32 +352,10 @@
 							time_left_s: 5,
 							max_time_s: 5,
 							hint: "Press another number",
-=======
-								radius_px: 100 + 6 * n,
-							},
-						],
-						hud: {
-							title: phase.title,
-							step: `Step ${n} of 3`,
-							subtitle: phase.subtitle,
-							time_left_s: 5,
-							max_time_s: 5,
-							hint: phase.hint,
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 						},
 						_local: true,
 					});
 				}
-<<<<<<< HEAD
-=======
-				// Toggle motion with keyboard 'm'
-				document.addEventListener("keydown", (e) => {
-					if (e.key.toLowerCase() === "m") {
-						reduceMotion = !reduceMotion;
-						applyMotionState();
-					}
-				});
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 				document.addEventListener("keydown", (e) => {
 					if (["1", "2", "3"].includes(e.key)) {
 						demoOverlay(Number(e.key));

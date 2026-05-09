@@ -211,10 +211,6 @@ def detect_aruco_anchors(
     intrinsics_path: str = "config/camera_intrinsics.yml",
     marker_size_m: float = 0.032,
     dict_name: str = "DICT_5X5_250",
-<<<<<<< HEAD
-=======
-    scale_up: float = 1.0,
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """Convenience wrapper used by the pipeline.
     - Subsamples detection rate (~15 Hz) and returns last anchors in between calls.
@@ -264,12 +260,6 @@ def detect_aruco_anchors(
         mid = int(m["id"])  # type: ignore[index]
         cx = float(m["center_px"]["x"])  # type: ignore[index]
         cy = float(m["center_px"]["y"])  # type: ignore[index]
-<<<<<<< HEAD
-=======
-        # Rescale to original frame space if detection ran on downscaled image
-        cx *= scale_up
-        cy *= scale_up
->>>>>>> 3fd54b7223d6d85794d599f6829e5349642b0e6f
         sx, sy = _smooth_pair(mid, (cx, cy))
         anchor: Dict[str, Any] = {
             "aruco_id": mid,

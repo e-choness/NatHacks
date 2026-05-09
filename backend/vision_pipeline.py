@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 
-from backend.cloud_vision import CloudVisionClient
+from cloud_vision import CloudVisionClient
 
 LOGGER = logging.getLogger("assistivecoach.vision")
 
@@ -85,11 +85,11 @@ class VisionPipeline:
         if camera_override is not None:
             self.camera = camera_override
         elif camera_enabled:
-            from backend.camera_capture import CameraCapture
+            from camera_capture import CameraCapture
 
             preview_callback = self.set_preview_frame
             if preview_callback is None:
-                from backend.app import set_preview_frame as _app_preview
+                from app import set_preview_frame as _app_preview
 
                 preview_callback = _app_preview
                 self.set_preview_frame = preview_callback
@@ -188,7 +188,7 @@ class VisionPipeline:
         self._perf_last_adapt_ns = time.time_ns()
         # Prime intrinsics status once so /health can expose pose availability even before markers appear
         try:
-            from backend.ar_overlay import load_camera_intrinsics
+            from ar_overlay import load_camera_intrinsics
             pose_requested = bool(getattr(self.settings, "pose", True))
             if pose_requested:
                 _k, _d, ok, err = load_camera_intrinsics()
@@ -669,7 +669,7 @@ class VisionPipeline:
             aruco_start_perf = time.perf_counter()
             if self.settings.aruco:
                 try:
-                    from backend.ar_overlay import detect_aruco_anchors
+                    from ar_overlay import detect_aruco_anchors
                     ar_anchors = detect_aruco_anchors(frame_rgb)
                 except (RuntimeError, ImportError) as exc:
                     LOGGER.debug("ArUco detection unavailable: %s", exc)
@@ -856,7 +856,7 @@ class VisionPipeline:
                     with contextlib.suppress(Exception):
                         self.camera.close()
                     # re-open camera
-                    from backend.camera_capture import CameraCapture
+                    from camera_capture import CameraCapture
                     self.camera = CameraCapture(self.frame_w, self.frame_h, 24, 0)
             except Exception as _wd_exc:  # pragma: no cover
                 LOGGER.debug("Watchdog reset failed: %s", _wd_exc)

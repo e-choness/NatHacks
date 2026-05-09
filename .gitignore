@@ -92,6 +92,7 @@ CLAUDE.md
 AGENTS.md
 .github
 reports/
+.openclaude/
 
 # Environment variables
 .env*.local

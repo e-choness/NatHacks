@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import pytest
-from backend.ar_overlay import detect_markers
+from ar_overlay import detect_markers
 
 
 def test_detect_single_marker():

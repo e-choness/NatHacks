@@ -23,14 +23,14 @@ import cv2
 from pathlib import Path
 
 # Import task system
-from backend.task_system import (
+from task_system import (
     get_all_tasks,
     start_task,
     TaskSession,
     TaskState,
     TASKS
 )
-from backend.voice_pipeline import VoiceAssistant, build_voice_assistant_from_env
+from voice_pipeline import VoiceAssistant, build_voice_assistant_from_env
 
 LOGGER = logging.getLogger("assistivecoach.backend")
 logging.basicConfig(
@@ -943,7 +943,7 @@ async def on_startup() -> None:
     
     # Start vision pipeline
     try:
-        from backend.vision_pipeline import VisionPipeline
+        from vision_pipeline import VisionPipeline
         _vision_pipeline = VisionPipeline(
             broadcast_fn=queue_broadcast,
             settings=settings_state,
@@ -961,7 +961,7 @@ async def on_startup() -> None:
         LOGGER.error("Failed to start vision pipeline: %s", exc)
         # Attempt synthetic fallback so overlays & health still work
         try:
-            from backend.vision_pipeline import VisionPipeline
+            from vision_pipeline import VisionPipeline
             _vision_pipeline = VisionPipeline(
                 broadcast_fn=queue_broadcast,
                 settings=settings_state,

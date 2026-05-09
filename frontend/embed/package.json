@@ -1,0 +1,36 @@
+{
+    "name": "assistive-coach-frontend",
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "build:mm": "npm run build && npm run copy:mm",
+        "copy:mm": "rm -rf ../modules/MMM-AssistiveCoach/public && mkdir -p ../modules/MMM-AssistiveCoach/public && cp -r dist/* ../modules/MMM-AssistiveCoach/public/",
+        "copy-to-mm": "npm run build:mm",
+        "preview": "vite preview",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    },
+    "dependencies": {
+        "clsx": "^2.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.20.0"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.43",
+        "@types/react-dom": "^18.2.17",
+        "@typescript-eslint/eslint-plugin": "^6.14.0",
+        "@typescript-eslint/parser": "^6.14.0",
+        "@vitejs/plugin-react": "^4.2.1",
+        "autoprefixer": "^10.4.16",
+        "eslint": "^8.55.0",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.5",
+        "postcss": "^8.4.32",
+        "tailwindcss": "^3.3.6",
+        "terser": "^5.44.1",
+        "typescript": "^5.2.2",
+        "vite": "^5.0.8"
+    }
+}

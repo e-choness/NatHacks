@@ -3,11 +3,11 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
-from backend.gemini_assistant import GeminiAssistant
-from backend.speech_clients import TTS, STT
+from gemini_assistant import GeminiAssistant
+from speech_clients import TTS, STT
 
 try:  # pragma: no cover - optional dependency during tests
-    from backend.vertex_speech import VertexSpeechToText
+    from vertex_speech import VertexSpeechToText
 except ImportError:  # pragma: no cover - optional dependency during tests
     VertexSpeechToText = None  # type: ignore
 

@@ -91,6 +91,7 @@ logs/*.log
 CLAUDE.md
 AGENTS.md
 .github
+reports/
 
 # Environment variables
 .env*.local

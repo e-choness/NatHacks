@@ -196,7 +196,7 @@ export function CameraSurface() {
         detectionsRef.current = {
           face: message.payload.face?.landmarks ?? undefined,
           hands: hands.length
-            ? hands.map((hand) => ({
+            ? hands.map((hand: any) => ({
                 handedness: hand.handedness,
                 landmarks: hand.landmarks
               }))

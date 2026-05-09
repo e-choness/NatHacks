@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-const URL = "http://localhost:8000";
+const URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
 
 function App() {
 	const [health, setHealth] = useState(null);
@@ -12,7 +13,7 @@ function App() {
 			.then((r) => r.json())
 			.then(setHealth)
 			.catch(() => {});
-		const socket = new WebSocket("ws://localhost:8000/ws");
+		const socket = new WebSocket(`${WS_URL}/ws`);
 		socket.onopen = () => setWs(true);
 		socket.onclose = () => setWs(false);
 		return () => socket.close();

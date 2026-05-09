@@ -167,7 +167,7 @@ function resolveAnchor(anchor: Anchor, context: AnchorResolutionContext): Resolv
     if (!aruco) return null;
     const part = anchor.aruco.part ?? "center";
     if (part === "center") return aruco.center;
-    return aruco.corners[part] ?? null;
+    return aruco.corners[part as keyof typeof aruco.corners] ?? null;
   }
   return null;
 }

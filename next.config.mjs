@@ -1,12 +1,8 @@
 const nextConfig = {
+  output: "standalone",
   reactStrictMode: true,
-  swcMinify: true,
   images: {
     unoptimized: true
-  },
-  experimental: {
-    appDir: true,
-    typedRoutes: true
   },
   webpack(config) {
     config.experiments = {

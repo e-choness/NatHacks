@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  # Infrastructure: PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: appdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Infrastructure: Redis Cache/Message Broker
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redisdata:/data
+
+  # Backend FastAPI Service
+  api:
+    build:
+      context: ./backend
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/appdb
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Frontend Next.js Service
+  web:
+    build:
+      context: .
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+    # Following the separation plan, we do not strictly enforce `depends_on`
+    # for the API so the frontend UI can degrade gracefully if the API drops.
+
+  # Atomic Ephemeral Backend Tests
+  backend-tests:
+    build:
+      context: ./backend
+      target: test-runner
+    command: pytest tests/ -v
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Atomic Ephemeral Frontend Tests
+  frontend-tests:
+    build:
+      context: .
+      target: test-runner
+    command: npm run test
+
+volumes:
+  pgdata:
+  redisdata:
